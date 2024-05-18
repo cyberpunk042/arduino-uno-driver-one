@@ -6,7 +6,6 @@ class BTS7960Motor {
 private:
     int pwmPinRight;
     int pwmPinLeft;
-    int currentSpeed;
     int targetSpeed;
 
     void writeSpeed(int speed) {  // Internal method to write speed to pins
@@ -22,6 +21,7 @@ private:
 public:
     BTS7960Motor(int pwmRight, int pwmLeft) : pwmPinRight(pwmRight), pwmPinLeft(pwmLeft), currentSpeed(0), targetSpeed(0) {}
 
+    int currentSpeed;
     void setup() {
         pinMode(pwmPinRight, OUTPUT);
         pinMode(pwmPinLeft, OUTPUT);

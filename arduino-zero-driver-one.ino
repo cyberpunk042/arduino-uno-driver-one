@@ -10,6 +10,7 @@ unsigned long lastSerialProcessing = 0;
 const int serialCheckInterval = 30; 
 unsigned long lastMotorProcessing = 0; 
 const int motorInterval = 3; 
+String statusMessage = "Default";
 
 void setup() {  
     leftMotor.setup();
