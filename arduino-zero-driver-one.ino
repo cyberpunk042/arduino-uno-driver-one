@@ -2,6 +2,13 @@
 #include "BTS7960Motor.h"
 #include "LCDDisplay.h"
 #include "RFReceiver.h"
+#include <mcp_can.h>
+#include <SPI.h>
+
+const int CAN_CS_PIN = 9;
+MCP_CAN CAN(CAN_CS_PIN); // Set CS pin
+
+bool canAvailable = false;
 
 // Define your motor pins
 BTS7960Motor leftMotor(4, 3); 
@@ -17,12 +24,21 @@ const int motorInterval = 3;
 String statusMessage = "Default";
 String command = "";
 
-void setup() {  
+void setup() {
+    Serial.begin(115200);
+    while (CAN_OK != CAN.begin(CAN_500KBPS)) {
+        Serial.println("CAN BUS Init Failed");
+        delay(100);
+    }
+    Serial.println("CAN BUS Init Success");
+    
     leftMotor.setup();
     rightMotor.setup();
     receiver.setup();
     initLCD();
     updateLCD();
+    
+    canAvailable = true;
 }
 
 void setMotorsTarget(int leftSpeed, int rightSpeed) {
@@ -44,26 +60,36 @@ void loop() {
         command = receiver.receive();
         lastReceiverProcessing = curtime;
     }
+
     if (command != "") {
-        //Serial.print("Command -> ");
-        //Serial.println(command);
         statusMessage = "RfCMD->" + command;
         MotorCommand cmd = readMotorCommandFromRF(command);
         setMotorsTarget(cmd.leftSpeed, cmd.rightSpeed);
-    }
-    else{
-        if (curtime - lastSerialProcessing > serialCheckInterval && Serial.available() > 0) {
-            MotorCommand cmd = readMotorCommandFromSerial();
-            setMotorsTarget(cmd.leftSpeed, cmd.rightSpeed);
-            lastSerialProcessing = curtime;
-        }
+    } 
+    else if (curtime - lastSerialProcessing > serialCheckInterval && Serial.available() > 0) {
+        MotorCommand cmd = readMotorCommandFromSerial();
+        setMotorsTarget(cmd.leftSpeed, cmd.rightSpeed);
+        lastSerialProcessing = curtime;
     }
     
+    // 🔽 CAN COMMAND HANDLING
+    if (canAvailable && CAN_MSGAVAIL == CAN.checkReceive()) {
+        unsigned char len = 0;
+        unsigned char buf[8];
+        CAN.readMsgBuf(&len, buf);
+        int leftSpeed = (int16_t)((buf[1] << 8) | buf[0]);  // Little endian
+        int rightSpeed = (int16_t)((buf[3] << 8) | buf[2]);
+
+        setMotorsTarget(leftSpeed, rightSpeed);
+        statusMessage = "CAN->" + String(leftSpeed) + "/" + String(rightSpeed);
+    }
+
     if (curtime - lastMotorProcessing > motorInterval) {
         updateMotorsSpeed();
         updateLCDSafely();
         lastMotorProcessing = curtime;
     }
-    
+
     delay(1);
 }
+
