@@ -1,4 +1,3 @@
-// CommandProcessing.h
 #ifndef BTS7960MOTOR_H
 #define BTS7960MOTOR_H
 
@@ -8,42 +7,51 @@ private:
     int pwmPinLeft;
     int targetSpeed;
 
-    void writeSpeed(int speed) {  // Internal method to write speed to pins
-        if (speed >= 0) {
+    void writeSpeed(int speed) {
+        speed = constrain(speed, -255, 255);  // Safety clamping
+
+        if (speed > 0) {
             analogWrite(pwmPinRight, speed);
             analogWrite(pwmPinLeft, 0);
-        } else {
+        } else if (speed < 0) {
             analogWrite(pwmPinRight, 0);
             analogWrite(pwmPinLeft, -speed);
+        } else {
+            analogWrite(pwmPinRight, 0);
+            analogWrite(pwmPinLeft, 0);
         }
     }
 
 public:
-    BTS7960Motor(int pwmRight, int pwmLeft) : pwmPinRight(pwmRight), pwmPinLeft(pwmLeft), currentSpeed(0), targetSpeed(0) {}
+    BTS7960Motor(int pwmRight, int pwmLeft)
+        : pwmPinRight(pwmRight), pwmPinLeft(pwmLeft), targetSpeed(0), currentSpeed(0) {}
 
     int currentSpeed;
+
     void setup() {
         pinMode(pwmPinRight, OUTPUT);
         pinMode(pwmPinLeft, OUTPUT);
+
+        // Arduino Zero (SAMD21) – set PWM resolution if needed
+        analogWriteResolution(8);  // Set to 8 bits: 0-255
+
         writeSpeed(0);
     }
 
-    void setTargetSpeed(int speed) {  // Set target speed
-        targetSpeed = speed;
+    void setTargetSpeed(int speed) {
+        targetSpeed = constrain(speed, -255, 255);
     }
 
-    void updateSpeed() {  // Call this method periodically to update speed
-        if (currentSpeed < targetSpeed) {
-            currentSpeed++;  // Ramp up speed
-        } else if (currentSpeed > targetSpeed) {
-            currentSpeed--;  // Ramp down speed
-        }
+    void updateSpeed() {
+        // Simple ramping logic
+        if (currentSpeed < targetSpeed) currentSpeed++;
+        else if (currentSpeed > targetSpeed) currentSpeed--;
         writeSpeed(currentSpeed);
     }
 
     void stop() {
-        targetSpeed = 0;
         currentSpeed = 0;
+        targetSpeed = 0;
         writeSpeed(0);
     }
 };

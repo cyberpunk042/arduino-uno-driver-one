@@ -8,7 +8,7 @@ struct MotorCommand {
     String status;
 };
 
-int rfSpeedConversion(int rfSpeed) {
+/*int rfSpeedConversion(int rfSpeed) {
     return map(rfSpeed, 0, 5, 0, 255);
 }
 
@@ -32,7 +32,7 @@ MotorCommand readMotorCommandFromRF(String command) {
         cmd.status = "Invalid command";
     }
     return cmd;
-}
+}*/
 
 MotorCommand readMotorCommandFromSerial() {
     if (Serial.available()) {
@@ -40,25 +40,28 @@ MotorCommand readMotorCommandFromSerial() {
         MotorCommand cmd;
         Serial.println("Reading from Serial: " + input);
 
-        int commaIndex = input.indexOf(',');
-        if (commaIndex != -1) {
-            String leftPart = input.substring(2, commaIndex);  // Extract left part after "L:"
-            String rightPart = input.substring(commaIndex + 3); // Extract right part after "R:"
-
-            if (input.charAt(0) == 'L' && input.charAt(commaIndex + 1) == 'R') {
-                cmd.leftSpeed = leftPart.toInt();
-                cmd.rightSpeed = rightPart.toInt();
-                cmd.status = "OK";
+        input.trim(); // remove whitespace and newline
+        if (input.startsWith("L:") || input.startsWith("R:")) {
+            int value = input.substring(2).toInt(); // after 'L:' or 'R:'
+            if (input.charAt(0) == 'L') {
+                cmd.leftSpeed = value;
+                cmd.rightSpeed = 0;
+                cmd.status = "Left-Input";
             } else {
-                cmd.status = "Invalid format";
+                cmd.leftSpeed = 0;
+                cmd.rightSpeed = value;
+                cmd.status = "Right-Input";
             }
+            cmd.status = "OK";
         } else {
-            cmd.status = "Invalid command";
+            cmd.status = "Invalid format";
+            cmd.leftSpeed = 0;
+            cmd.rightSpeed = 0;
         }
         return cmd;
-    } else {
-        return MotorCommand{0, 0, "No data"};
     }
+    return MotorCommand{0, 0, "No data"};
 }
+
 
 #endif
