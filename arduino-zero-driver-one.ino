@@ -1,10 +1,11 @@
 #include "CommandProcessing.h"
-#include "BTS7960Motor.h"
+#include "StandardMotorController.h"
 #include "RFReceiver.h"
 
 // --- Motor Configuration ---
-BTS7960Motor leftMotor(4, 3);   // IN1, IN2
-BTS7960Motor rightMotor(5, 6);  // IN1, IN2
+// Standard motor controller with two direction pins (IN1/IN2) and one PWM pin
+StandardMotorController leftMotor(2, 3, 4);   // IN1, IN2, PWM pin
+StandardMotorController rightMotor(5, 6, 7);  // IN1, IN2, PWM pin
 
 // --- RF Receiver ---
 //RFReceiver receiver(7, 8);  // RX, TX
@@ -26,15 +27,20 @@ String command = "";
 void setup() {
     leftMotor.setup();
     rightMotor.setup();
+    
+    // Uncomment if using external control interface
+    // leftControl.setup();
+    // rightControl.setup();
+    
 //    receiver.setup();=
-    //leftMotor.setTargetSpeed(200);
-    //rightMotor.setTargetSpeed(200);
+    leftMotor.setTargetSpeed(0);
+    rightMotor.setTargetSpeed(0);
     Serial.begin(9600);
 }
 
 void updateMotorsSpeed() {
-    leftMotor.updateSpeed();
-    rightMotor.updateSpeed();
+    leftMotor.update();
+    rightMotor.update();
 }
 
 /*void handleRFReceiver(unsigned long curTime) {
@@ -61,19 +67,51 @@ void handleSerialInput(unsigned long curTime) {
         
         printMotorCommand(cmd);
         if(cmd.status == "Left-Input"){
-            leftMotor.setTargetSpeed(convertDutyToPWM(cmd.leftSpeed));
+            handleMotorCommand(leftMotor, cmd.leftSpeed);
         }
-        else {
-            rightMotor.setTargetSpeed(convertDutyToPWM(cmd.rightSpeed));
+        else if(cmd.status == "Right-Input"){
+            handleMotorCommand(rightMotor, cmd.rightSpeed);
         }
         lastSerialCheckTime = curTime;
     }
 }
 
+void handleMotorCommand(StandardMotorController& motor, int speed) {
+    if(speed == 0) {
+        motor.stop();  // Stop the motor completely
+    } else {
+        // Determine direction based on speed sign
+        bool forward = (speed > 0);
+        motor.setDirection(forward);
+        
+        // Convert speed to absolute value for PWM
+        int absSpeed = abs(speed);
+        int pwmSpeed = convertDutyToPWM(absSpeed);
+        motor.setTargetSpeed(pwmSpeed);
+    }
+}
+
+// Example function for external control (uncomment if using external inputs)
+/*
+void handleExternalControl() {
+    // Read external controls and update motors
+    bool leftDirection = leftControl.readDirection();
+    int leftSpeed = leftControl.readSpeed();
+    
+    bool rightDirection = rightControl.readDirection();
+    int rightSpeed = rightControl.readSpeed();
+    
+    leftMotor.setDirection(leftDirection);
+    leftMotor.setTargetSpeed(leftSpeed);
+    
+    rightMotor.setDirection(rightDirection);
+    rightMotor.setTargetSpeed(rightSpeed);
+}
+*/
+
 int convertDutyToPWM(int dutyCycle) {
     return constrain(map(dutyCycle, 0, 100, 0, 255), 0, 255);
 }
-
 
 void printMotorCommand(const MotorCommand& cmd) {
     Serial.print("MotorCommand ->");
@@ -96,11 +134,10 @@ void loop() {
         }
     }*/
 
-    MotorCommand serialCmd = readMotorCommandFromSerial();
-    if (serialCmd.status == "Left-Input" || serialCmd.status == "Right-Input" ) {
-        handleSerialInput(serialCmd);
-        statusMessage = "From Serial";
-    }
+    handleSerialInput(curTime);
+
+    // Uncomment if using external control interface
+    // handleExternalControl();
 
     if (curTime - lastMotorUpdateTime >= MOTOR_UPDATE_INTERVAL) {
         updateMotorsSpeed();

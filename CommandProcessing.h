@@ -35,33 +35,28 @@ MotorCommand readMotorCommandFromRF(String command) {
 }*/
 
 MotorCommand readMotorCommandFromSerial() {
-    if (Serial.available()) {
-        String input = Serial.readStringUntil('\n');
-        MotorCommand cmd;
-        Serial.println("Reading from Serial: " + input);
+    String input = Serial.readStringUntil('\n');
+    MotorCommand cmd;
+    Serial.println("Reading from Serial: " + input);
 
-        input.trim(); // remove whitespace and newline
-        if (input.startsWith("L:") || input.startsWith("R:")) {
-            int value = input.substring(2).toInt(); // after 'L:' or 'R:'
-            if (input.charAt(0) == 'L') {
-                cmd.leftSpeed = value;
-                cmd.rightSpeed = 0;
-                cmd.status = "Left-Input";
-            } else {
-                cmd.leftSpeed = 0;
-                cmd.rightSpeed = value;
-                cmd.status = "Right-Input";
-            }
-            cmd.status = "OK";
-        } else {
-            cmd.status = "Invalid format";
-            cmd.leftSpeed = 0;
+    input.trim(); // remove whitespace and newline
+    if (input.startsWith("L:") || input.startsWith("R:")) {
+        int value = input.substring(2).toInt(); // after 'L:' or 'R:'
+        if (input.charAt(0) == 'L') {
+            cmd.leftSpeed = value;
             cmd.rightSpeed = 0;
+            cmd.status = "Left-Input";
+        } else {
+            cmd.leftSpeed = 0;
+            cmd.rightSpeed = value;
+            cmd.status = "Right-Input";
         }
-        return cmd;
+    } else {
+        cmd.status = "Invalid format";
+        cmd.leftSpeed = 0;
+        cmd.rightSpeed = 0;
     }
-    return MotorCommand{0, 0, "No data"};
+    return cmd;
 }
-
 
 #endif
