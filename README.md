@@ -70,35 +70,13 @@ The system supports serial commands for testing and remote control using the Ard
 - Arduino Uno R3 (ATmega328P)
 - LCD-I2C from Frank Hafele (optional)
 - Standard motor controllers (L298N, TB6612FNG, or DRV8833 recommended)
-- 12V DC motors
-
-## Wiring
-See `WIRING_DIAGRAM.md` for detailed wiring instructions and component recommendations.
+- 12V+ DC motors
 
 ## Usage
 1. **GPIO Control**: Use IN1/IN2 pins for direction and PWM pin for speed
 2. **Serial Control**: Send commands via Serial Monitor for testing
 3. **Automatic Updates**: Motors update every 3ms for smooth operation
 4. **For Uno**: Upload `arduino-uno-driver-one.ino` to your Arduino Uno R3
-
-## Programming Interface
-
-### Setting Direction
-```cpp
-leftMotor.setDirection(true);   // Forward (IN1=HIGH, IN2=LOW)
-leftMotor.setDirection(false);  // Backward (IN1=LOW, IN2=HIGH)
-```
-
-### Setting Speed
-```cpp
-leftMotor.setTargetSpeed(128);  // 50% speed
-leftMotor.setSpeedPin(255);     // Direct PWM control
-```
-
-### Stopping
-```cpp
-leftMotor.stop();  // Sets IN1=LOW, IN2=LOW, PWM=0
-```
 
 ## Troubleshooting
 - Check power supply connections
