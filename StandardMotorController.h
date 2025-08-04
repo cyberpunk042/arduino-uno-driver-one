@@ -38,7 +38,9 @@ public:
         pinMode(pwmPin, OUTPUT);
         
         // Arduino Zero (SAMD21) – set PWM resolution if needed
-        analogWriteResolution(8);  // Set to 8 bits: 0-255
+        #if defined(ARDUINO_ARCH_SAMD)
+            analogWriteResolution(8);  // Set to 8 bits: 0-255 (Only for SAMD/Zero)
+        #endif
         
         // Initialize direction and speed
         setDirection(true);

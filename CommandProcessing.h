@@ -1,6 +1,5 @@
 #ifndef COMMAND_PROCESSING_H
 #define COMMAND_PROCESSING_H
-#define Serial SerialUSB
 
 struct MotorCommand {
     int leftSpeed;
