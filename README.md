@@ -1,9 +1,7 @@
-# Arduino Zero Driver One
+# Arduino Uno Driver One
 
 ## Overview
-This project controls two DC motors using standard high-quality motor controllers with the correct pin configuration:
-- **Two Direction Pins (IN1/IN2)**: One HIGH, one LOW for direction control of each motor
-- **One PWM Pin**: For speed control (0-255) of each motor
+This project controls two DC motors using standard high-quality motor controllers with the correct pin configuration. It is now fully compatible with the Arduino Uno R3 (ATmega328P, 5V logic).
 
 ## Hardware Setup
 
@@ -41,17 +39,18 @@ This project controls two DC motors using standard high-quality motor controller
 - **Safety Clamping**: Values constrained to safe limits
 
 ## Serial Communication
-The system still supports serial commands for testing and remote control:
+The system supports serial commands for testing and remote control using the Arduino Uno's standard Serial interface (USB-to-serial via Serial Monitor).
 
 ### Serial Message Format
 - **S** for Side (L & R)
 - **XXX** For Speed (0 to 100 as percentage)
-- **SXXX:SXXX**
+- **S:XXX**
 
 ### Examples
-- `L50:R50` - Left motor 50%, Right motor 50%
-- `L25:R75` - Left motor 25%, Right motor 75%
-- `L0:R0` - Stop both motors
+- `L:50` - Left motor forward 50%
+- `R:75` - Right motor forward 75%
+- `R:-75` - Right motor reverse 75%
+- `L0` - Stop left motors
 
 ## Features
 
@@ -68,7 +67,7 @@ The system still supports serial commands for testing and remote control:
 - **Real-time Response**: Immediate reaction to GPIO changes
 
 ## Requirements
-- Arduino Zero (SAMD21)
+- Arduino Uno R3 (ATmega328P)
 - LCD-I2C from Frank Hafele (optional)
 - Standard motor controllers (L298N, TB6612FNG, or DRV8833 recommended)
 - 12V DC motors
@@ -80,6 +79,7 @@ See `WIRING_DIAGRAM.md` for detailed wiring instructions and component recommend
 1. **GPIO Control**: Use IN1/IN2 pins for direction and PWM pin for speed
 2. **Serial Control**: Send commands via Serial Monitor for testing
 3. **Automatic Updates**: Motors update every 3ms for smooth operation
+4. **For Uno**: Upload `arduino-uno-driver-one.ino` to your Arduino Uno R3
 
 ## Programming Interface
 
